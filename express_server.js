@@ -7,6 +7,11 @@ app.set("view engine", "ejs")
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+function generateRandomString() {
+  let randString = toString(Math.floor(Math.random() * 800000))
+  return randString;
+}
+
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -46,6 +51,11 @@ app.get("/hello", (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("Hello!");
+});
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.listen(PORT, () => {

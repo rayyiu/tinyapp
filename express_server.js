@@ -2,13 +2,14 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
-app.set("view engine", "ejs") 
+app.set("view engine", "ejs")
 
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 function generateRandomString() {
-  let randString = toString(Math.floor(Math.random() * 800000))
+  let randNum = Math.floor((Math.random() * 1000 + 10000));
+  let randString = 'a' + randNum;
   return randString;
 }
 
@@ -19,8 +20,8 @@ const urlDatabase = {
 };
 
 app.get("/u/:shortURL", (req, res) => {
-const longURL = urlDatabase[req.params.shortURL];
-res.redirect(longURL);
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
 });
 
 app.get("/urls/new", (req, res) => {
@@ -61,6 +62,11 @@ app.post("/urls", (req, res) => {
   console.log('the urlDatabase has been updated to now be: \n', urlDatabase);
   res.redirect(`/urls`);         // Respond with 'Ok' (we will replace this)
 });
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect(`/urls`);
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

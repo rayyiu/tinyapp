@@ -19,10 +19,6 @@ const urlDatabase = {
 };
 
 app.get("/u/:shortURL", (req, res) => {
-  if (!Object.keys(urlDatabase).includes(req.params.shortURL)) {
-    res.send("Invalid Short URL! Please check again.");
-  }
-  
 const longURL = urlDatabase[req.params.shortURL];
 res.redirect(longURL);
 });
@@ -53,9 +49,17 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL]// const longURL = ...
+  res.redirect(longURL);
+});
+
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  console.log('the urlDatabase has been updated to now be: \n', urlDatabase);
+  res.redirect(`/urls`);         // Respond with 'Ok' (we will replace this)
 });
 
 app.listen(PORT, () => {

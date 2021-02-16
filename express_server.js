@@ -13,7 +13,6 @@ function generateRandomString() {
   return randString;
 }
 
-
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -63,10 +62,18 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls`);         // Respond with 'Ok' (we will replace this)
 });
 
+app.post("/urls/:id", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  urlDatabase[req.params.id] = req.body.longURL;
+  console.log('the urlDatabase has been updated to now be: \n', urlDatabase);
+  res.redirect(`/urls`);         // Respond with 'Ok' (we will replace this)
+});
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect(`/urls`);
 })
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

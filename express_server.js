@@ -24,20 +24,51 @@ const urlDatabase = {
 };
 
 
+// const users = {
+//   "user1": {
+//     username: "duckyTheDuck"
+//   },
+//   "user2": {
+//     username: "quackyTheQuack"
+//   }
+// };
+
 const users = {
-  "user1": {
-    username: "duckyTheDuck"
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
   },
-  "user2": {
-    username: "quackyTheQuack"
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
   }
-};
+}
+
+const emailLooker = function (email) {
+  for (let id in users) {
+    if (users[id].email === email) {
+      return id
+    }
+  }
+}
+
 
 app.post("/login", (req, res) => {
   console.log("login", req.body);
-  const username = req.body.username
-  res.cookie("username", username);
-  res.redirect("/urls");
+  console.log("users", users);
+  const userEmail = req.body.email;
+  const userPassword = req.body.password;
+  for (let id in users) {
+    if (users[id]['email'] === userEmail && users[id]['password'] === userPassword) {
+      res.cookie("userID", emailLooker(userEmail));
+      res.redirect("/urls");
+      return;
+    }
+  }
+  res.status(403);
+  res.send("Invalid username or password.")
 });
 
 
@@ -51,7 +82,8 @@ app.get("/urls", (req, res) => {
   const cookie = req.cookies.username
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    username: req.cookies["username"],
+    user: users[req.cookies["userID"]]
   };
   console.log(templateVars);
   res.render("urls_index", templateVars);
@@ -60,7 +92,8 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    username: req.cookies["username"],
+    user: users[req.cookies["userID"]]
   };
   res.render("urls_new", templateVars);
 });
@@ -69,7 +102,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"]
+    user: users[req.cookies["userID"]]
   };
   res.render("urls_show", templateVars);
 });
@@ -81,7 +114,8 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    username: req.cookies["username"],
+    user: users[req.cookies["userID"]]
   };
   res.render("urls_index", templateVars);
 });
@@ -94,6 +128,22 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+app.get("/register", (req, res) => {
+  const templateVars = {
+    username: null,
+    user: null
+  }
+  res.render("urls_registration", templateVars);
+});
+
+app.get("/login", (req, res) => {
+  const templateVars = {
+    username: null,
+    user: null
+  }
+  res.render("url_login", templateVars);
+})
+
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL]// const longURL = ...
   if (longURL) {
@@ -102,6 +152,26 @@ app.get("/u/:shortURL", (req, res) => {
     res.redirect('https://http.cat/404');
   }
 });
+
+app.post("/register", (req, res) => {
+  console.log(req.body);
+  const { email, password } = req.body;
+  const randomID = generateRandomString();
+  if (email === '' || password === '') {
+    res.status(400);
+    res.send("Invalid input! Please try again")
+    return;
+  } else if (emailLooker(email)) {
+    res.status(400);
+    res.send("email already exists")
+  } else {
+    console.log("users", users);
+    users[randomID] = { id: randomID, email, password }
+    res.cookie("userID", randomID);
+    res.cookie("username", email);
+    res.redirect(`urls`);
+  }
+})
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
@@ -125,7 +195,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.post("/logout", (req, res) => {
   const username = req.body.username;
-  res.clearCookie("username", username);
+  res.clearCookie("username");
+  res.clearCookie("userID");
   res.redirect("/urls");
 });
 

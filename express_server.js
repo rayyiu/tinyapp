@@ -54,11 +54,21 @@ const emailLooker = function (email) {
   }
 }
 
+
 app.post("/login", (req, res) => {
   console.log("login", req.body);
-  const username = req.body.username
-  res.cookie("username", username);
-  res.redirect("/urls");
+  console.log("users", users);
+  const userEmail = req.body.email;
+  const userPassword = req.body.password;
+  for (let id in users) {
+    if (users[id]['email'] === userEmail && users[id]['password'] === userPassword) {
+      res.cookie("userID", emailLooker(userEmail));
+      res.redirect("/urls");
+      return;
+    }
+  }
+  res.status(403);
+  res.send("Invalid username or password.")
 });
 
 
@@ -126,6 +136,14 @@ app.get("/register", (req, res) => {
   res.render("urls_registration", templateVars);
 });
 
+app.get("/login", (req, res) => {
+  const templateVars = {
+    username: null,
+    user: null
+  }
+  res.render("url_login", templateVars);
+})
+
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL]// const longURL = ...
   if (longURL) {
@@ -139,19 +157,20 @@ app.post("/register", (req, res) => {
   console.log(req.body);
   const { email, password } = req.body;
   const randomID = generateRandomString();
-  users[randomID] = { id: randomID, email, password }
-  if (users[randomID].email === '' || users[randomID].password === '') {
+  if (email === '' || password === '') {
     res.status(400);
     res.send("Invalid input! Please try again")
     return;
-  } else if (emailLooker(users[randomID].email)) {
+  } else if (emailLooker(email)) {
     res.status(400);
     res.send("email already exists")
+  } else {
+    console.log("users", users);
+    users[randomID] = { id: randomID, email, password }
+    res.cookie("userID", randomID);
+    res.cookie("username", email);
+    res.redirect(`urls`);
   }
-  console.log("users", users);
-  res.cookie("userID", randomID);
-  res.cookie("username", email);
-  res.redirect(`urls`);
 })
 
 app.post("/urls", (req, res) => {

@@ -77,16 +77,32 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+const userURLs = function (userID) {
+  let final = {};
+  for (let key in urlDatabase) {
+    console.log("keys", key);
+    console.log("userID", userID);
+    if (userID === key) {
+      final[userID] = urlDatabase[key];
+    }
+  }
+  console.log("final for userURLS", final);
+}
+
 app.get("/urls", (req, res) => {
   console.log("req.cookies", req.cookies);
   const cookie = req.cookies.username
-  const templateVars = {
-    urls: urlDatabase,
-    username: req.cookies["username"],
-    user: users[req.cookies["userID"]]
-  };
-  console.log(templateVars);
-  res.render("urls_index", templateVars);
+  if (cookie) {
+    const templateVars = {
+      urls: userURLs(cookie),
+      username: req.cookies["username"],
+      user: users[req.cookies["userID"]]
+    };
+    console.log(templateVars);
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/urls/new", (req, res) => {

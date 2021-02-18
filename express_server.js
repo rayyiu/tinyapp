@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const cookieParser = require("cookie-parser");
+const bcrypt = require('bcryptjs');
 
 app.set("view engine", "ejs")
 
@@ -60,8 +61,13 @@ app.post("/login", (req, res) => {
   console.log("users", users);
   const userEmail = req.body.email;
   const userPassword = req.body.password;
+  console.log("password", userPassword)
   for (let id in users) {
-    if (users[id]['email'] === userEmail && users[id]['password'] === userPassword) {
+    console.log("usersEmail", users[id]["email"])
+    console.log("usersPassword", users[id]["password"])
+    console.log("compareSync", bcrypt.compareSync(userPassword, users[id]['password']));
+    if (users[id]['email'] === userEmail && bcrypt.compareSync(userPassword, users[id]['password'])) {
+      // && bcrypt.compareSync(users[id]['password'], userPassword)) {
       res.cookie("userID", emailLooker(userEmail));
       res.redirect("/urls");
       return;
@@ -147,7 +153,11 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const templateVars = {
+    username: null,
+    user: null
+  }
+  res.render("urls_registration", templateVars);
 });
 
 app.get("/register", (req, res) => {
@@ -178,7 +188,9 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/register", (req, res) => {
   console.log(req.body);
   const { email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10)
   const randomID = generateRandomString();
+  // console.log("hashpassword", bcrypt.hashSync(password, 10))
   if (email === '' || password === '') {
     res.status(400);
     res.send("Invalid input! Please try again")
@@ -187,8 +199,8 @@ app.post("/register", (req, res) => {
     res.status(400);
     res.send("email already exists")
   } else {
+    users[randomID] = { id: randomID, email, password: hashedPassword }
     console.log("users", users);
-    users[randomID] = { id: randomID, email, password }
     res.cookie("userID", randomID);
     res.cookie("username", email);
     res.redirect(`urls`);

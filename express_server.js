@@ -63,18 +63,18 @@ const { emailLooker } = require("./helpers.js")
 
 
 app.post("/login", (req, res) => {
-  console.log("login", req.body);
-  console.log("users", users);
+  // console.log("login", req.body);
+  // console.log("users", users);
   const userEmail = req.body.email;
   const userPassword = req.body.password;
-  console.log("password", userPassword)
+  // console.log("password", userPassword)
   for (let id in users) {
-    console.log("usersEmail", users[id]["email"])
-    console.log("usersPassword", users[id]["password"])
-    console.log("compareSync", bcrypt.compareSync(userPassword, users[id]['password']));
+    // console.log("usersEmail", users[id]["email"])
+    // console.log("usersPassword", users[id]["password"])
+    // console.log("compareSync", bcrypt.compareSync(userPassword, users[id]['password']));
     if (users[id]['email'] === userEmail && bcrypt.compareSync(userPassword, users[id]['password'])) {
       // res.cookie("userID", emailLooker(userEmail));
-      req.session.userID = emailLooker(userEmail);
+      req.session.userID = emailLooker(userEmail, users);
       res.redirect("/urls");
       return;
     }
@@ -84,12 +84,12 @@ app.post("/login", (req, res) => {
 });
 
 
-app.get("/u/:shortURL", (req, res) => {
-  console.log("longURL", urlDatabase[req.params.shortURL].longURL)
-  console.log("reqParamsshort", req.params.shortURL);
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
-});
+// app.get("/u/:shortURL", (req, res) => {
+//   console.log("longURL", urlDatabase[req.params.shortURL].longURL)
+//   console.log("reqParamsshort", req.params.shortURL);
+//   const longURL = urlDatabase[req.params.shortURL]["longURL"];
+//   res.redirect(longURL);
+// });
 
 const userURLs = function (userID) {
   let final = {};
@@ -193,7 +193,9 @@ app.get("/login", (req, res) => {
 })
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL// const longURL = ...
+  console.log("urldatabase", urlDatabase[req.params.shortURL])
+  const longURL = urlDatabase[req.params.shortURL]["longURL"]// const longURL = ...
+  console.log("longURL", longURL);
   if (longURL) {
     res.redirect(longURL);
   } else {
@@ -202,7 +204,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   const { email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 10)
   const randomID = generateRandomString();
@@ -211,12 +213,12 @@ app.post("/register", (req, res) => {
     res.status(400);
     res.send("Invalid input! Please try again")
     return;
-  } else if (emailLooker(email)) {
+  } else if (emailLooker(email, users)) {
     res.status(400);
     res.send("email already exists")
   } else {
     users[randomID] = { id: randomID, email, password: hashedPassword }
-    console.log("users", users);
+    // console.log("users", users);
     // res.cookie("userID", randomID);
     req.session.userID = randomID;
     // res.cookie("username", email);
@@ -226,7 +228,7 @@ app.post("/register", (req, res) => {
 })
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
+  // console.log(req.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
   const userID = req.session["userID"];
   // req.cookies["userID"];
@@ -236,7 +238,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
+  // console.log(req.body);  // Log the POST request body to the console
   const userID = req.session["userID"];
   // req.cookies["userID"];
   if (userID === urlDatabase[req.params.id].userID) {

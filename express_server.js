@@ -94,6 +94,7 @@ app.get("/urls/new", (req, res) => {
       user: users[req.session["userID"]]
     };
     res.render("urls_new", templateVars);
+    return;
   }
   res.redirect("/login")
 });
@@ -181,11 +182,15 @@ app.post("/register", (req, res) => {
 
 //posts a users unique links to urls page.
 app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString();
+  const shortURL = generateRandomString();
   const userID = req.session["userID"];
+  if (!users[userID]) {
+    res.status(403).send('403 Forbidden')
+    return;
+  }
   urlDatabase[shortURL] = { longURL: req.body.longURL, userID, };
   console.log('the urlDatabase has been updated to now be: \n', urlDatabase);
-  res.redirect(`/urls`);
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.post("/urls/:id", (req, res) => {
